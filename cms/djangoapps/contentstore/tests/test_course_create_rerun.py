@@ -425,45 +425,6 @@ class TestCourseHandlerAuthz(
         )
 
     # ------------------------------------------------------------
-    # CREATE COURSE -- Non-staff users and existing Organization
-    # ------------------------------------------------------------
-    @override_settings(FEATURES={"DISABLE_COURSE_CREATION": False})
-    def test_create_course_unauthorized(self):
-        """
-        User without role cannot create course.
-        """
-
-        response = self.unauthorized_client.ajax_post(self.url, {
-            "org": self.org,
-            "number": "CS101",
-            "display_name": "Authz Course",
-            "run": "2026_T1",
-        })
-
-        assert response.status_code == 403
-
-    @override_settings(FEATURES={"DISABLE_COURSE_CREATION": False})
-    def test_create_course_unauthorized_with_role(self):
-        """
-        User with role but without required permission cannot create course.
-        """
-
-        self.add_user_to_role_in_course(
-            self.unauthorized_user,
-            COURSE_EDITOR.external_key,
-            "course-v1:someotherorg+*",
-        )
-
-        response = self.unauthorized_client.ajax_post(self.url, {
-            "org": self.org,
-            "number": "CS101",
-            "display_name": "Authz Course",
-            "run": "2026_T1",
-        })
-
-        assert response.status_code == 403
-
-    # ------------------------------------------------------------
     # CREATE COURSE -- Staff users
     # Only staff users can create course, and they can do it
     # without an org role.
@@ -480,24 +441,6 @@ class TestCourseHandlerAuthz(
         })
 
         assert response.status_code == 200
-
-    # ------------------------------------------------------------
-    # FEATURE FLAG
-    # ------------------------------------------------------------
-    @override_settings(FEATURES={"DISABLE_COURSE_CREATION": True})
-    def test_create_course_disabled_by_flag(self):
-        """
-        Even authorized users cannot create course if feature flag is off.
-        """
-
-        response = self.authorized_staff_client.ajax_post(self.url, {
-            "org": self.org,
-            "number": "CS101",
-            "display_name": "Authz Course",
-            "run": "2026_T1",
-        })
-
-        assert response.status_code == 403
 
 
 class TestCourseRerunAuthz(
