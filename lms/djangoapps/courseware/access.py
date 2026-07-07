@@ -33,6 +33,7 @@ from common.djangoapps.student.roles import (
     OrgInstructorRole,
     OrgStaffRole,
     SupportStaffRole,
+    enable_authz_course_authoring,
 )
 from common.djangoapps.util import (  # lint-amnesty, pylint: disable=useless-import-alias
     milestones_helpers as milestones_helpers,
@@ -64,7 +65,6 @@ from lms.djangoapps.courseware.access_utils import (
 from lms.djangoapps.courseware.masquerade import get_masquerade_role, is_masquerading_as_student
 from lms.djangoapps.courseware.toggles import course_is_invitation_only
 from lms.djangoapps.mobile_api.models import IgnoreMobileAvailableFlagConfig
-from openedx.core import toggles as core_toggles
 from openedx.core.djangoapps.authz.constants import LegacyAuthoringPermission
 from openedx.core.djangoapps.authz.decorators import user_has_course_permission
 from openedx.core.djangoapps.content.course_overviews.models import CourseOverview
@@ -481,10 +481,17 @@ def _has_access_course(user, action, courselike):
         if _has_staff_access_to_block(user, courselike, courselike.id):
             return ACCESS_GRANTED
 
+    @function_trace('can_see_about_page')
+    def can_see_about_page():
+        """
+        Implements the "can see course about page" logic if a course about page should be visible
+        In this case we use the catalog_visibility property on the course block
+        but also allow course staff to see this.
+        """
         if (
             user
             and not user.is_anonymous
-            and core_toggles.enable_authz_course_authoring(courselike.id)
+            and enable_authz_course_authoring(courselike.id)
             and user_has_course_permission(
                 user, COURSES_VIEW_COURSE.identifier, courselike.id, LegacyAuthoringPermission.READ
             )
