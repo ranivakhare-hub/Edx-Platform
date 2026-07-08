@@ -10,6 +10,7 @@ from django.contrib.admin import autodiscover as django_autodiscover
 from django.urls import include, path, re_path
 from django.utils.translation import gettext_lazy as _
 from django.views.generic.base import RedirectView
+from drf_spectacular.views import SpectacularAPIView
 from edx_api_doc_tools import make_docs_urls
 from edx_django_utils.plugins import get_plugin_url_patterns
 from submissions import urls as submissions_urls
@@ -117,6 +118,7 @@ urlpatterns = [
 
     # Enrollment API RESTful endpoints
     path('api/enrollment/v1/', include('openedx.core.djangoapps.enrollments.urls')),
+    path('api/enrollment/v2/', include('openedx.core.djangoapps.enrollments.v2.urls')),
 
     # Agreements API RESTful endpoints
     path('api/agreements/v1/', include('openedx.core.djangoapps.agreements.urls')),
@@ -1066,4 +1068,9 @@ urlpatterns += [
 
 urlpatterns += [
     path('xqueue/', include((submissions_urls, 'submissions'), namespace='submissions')),
+]
+
+# LMS API schema for openedx-platform-sdk generation.
+urlpatterns += [
+    path('lms-api/schema/', SpectacularAPIView.as_view(), name='lms-schema'),
 ]
